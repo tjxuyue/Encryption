@@ -1,5 +1,6 @@
 package STATE.REALIZATION.SM3;
 
+import org.bouncycastle.jcajce.provider.symmetric.Threefish;
 import org.bouncycastle.util.encoders.Hex;  
 
 public class SM3Digest  
@@ -131,15 +132,20 @@ public class SM3Digest
     {  
         return BYTE_LENGTH;  
     }  
-      
-    public static void main(String[] args)   
-    {  
-        byte[] md = new byte[32];  
-        byte[] msg1 = "ererfeiisgod".getBytes();  
+    
+    //加密函数
+    public String encrypt(String msg){
+    	byte[] md = new byte[32];  
+        byte[] msg1 = msg.getBytes();  
         SM3Digest sm3 = new SM3Digest();  
         sm3.update(msg1, 0, msg1.length);  
         sm3.doFinal(md, 0);  
-        String s = new String(Hex.encode(md));  
-        System.out.println(s.toUpperCase());  
+        return new String(Hex.encode(md)); 
+    }
+    public static void main(String[] args)   
+    {  
+    	SM3Digest sm3=new SM3Digest();
+        String tString="范德萨发生地方";
+        System.out.println(sm3.encrypt(tString));  
     }  
 }  

@@ -1,15 +1,8 @@
-package STATE.REALIZATION.SM2;
+package state.SM2;
 
 import java.io.IOException;
-/**
- * SM2为非对称加密，基于ECC。该算法已公开。由于该算法基于ECC，
- * 故其签名速度与秘钥生成速度都快于RSA。ECC 256位（SM2采用的就是ECC 256位的一种）
- * 安全强度比RSA 2048位高，但运算速度快于RSA。
- *
- */
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Random;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
@@ -20,47 +13,52 @@ import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.ECFieldElement;
 import org.bouncycastle.math.ec.ECPoint;
+
+import state.common.Cipher;
+
 import org.bouncycastle.math.ec.ECFieldElement.Fp;
 
-import UTIL.Util;
+import util.Util;
 
 public class SM2 {
-	// 测试参数
-	// public static final String[] ecc_param = {
-	// "8542D69E4C044F18E8B92435BF6FF7DE457283915C45517D722EDB8B08F1DFC3",
-	// "787968B4FA32C3FD2417842E73BBFEFF2F3C848B6831D7E0EC65228B3937E498",
-	// "63E4C6D3B23B0C849CF84241484BFE48F61D59A5B16BA06E6E12D1DA27C5249A",
-	// "8542D69E4C044F18E8B92435BF6FF7DD297720630485628D5AE74EE7C32E79B7",
-	// "421DEBD61B62EAB6746434EBC3CC315E32220B3BADD50BDC4C4E6C147FEDD43D",
-	// "0680512BCBB42C07D47349D2153B70C4E5D7FDFCBFA36EA1A85841B9E46E09A2"
-	// };
+	
+	
 
+	public String encrypt(String pub, String data) {
+		try {
+			return encrypt(Util.hexStringToBytes(pub), Util.hexStringToBytes(data));
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	// 国密推荐参数
-	public static String[] ecc_param = { "FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF",
+	private static String[] ecc_param = { "FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF",
 			"FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFC",
 			"28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93",
 			"FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123",
 			"32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7",
 			"BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0" };
 
-	public static SM2 Instance() {
+	private static SM2 Instance() {
 		return new SM2();
 	}
 
-	public final BigInteger ecc_p;
-	public final BigInteger ecc_a;
-	public final BigInteger ecc_b;
-	public final BigInteger ecc_n;
-	public final BigInteger ecc_gx;
-	public final BigInteger ecc_gy;
-	public final ECCurve ecc_curve;
-	public final ECPoint ecc_point_g;
-	public final ECDomainParameters ecc_bc_spec;
-	public final ECKeyPairGenerator ecc_key_pair_generator;
-	public final ECFieldElement ecc_gx_fieldelement;
-	public final ECFieldElement ecc_gy_fieldelement;
-
-	public SM2() {
+	private final BigInteger ecc_p;
+	private final BigInteger ecc_a;
+	private final BigInteger ecc_b;
+	private final BigInteger ecc_n;
+	private final BigInteger ecc_gx;
+	private final BigInteger ecc_gy;
+	private final ECCurve ecc_curve;
+	private final ECPoint ecc_point_g;
+	private final ECDomainParameters ecc_bc_spec;
+	private final ECKeyPairGenerator ecc_key_pair_generator;
+	private final ECFieldElement ecc_gx_fieldelement;
+	private final ECFieldElement ecc_gy_fieldelement;
+	
+	private SM2() {
 		this.ecc_p = new BigInteger(ecc_param[0], 16);
 		this.ecc_a = new BigInteger(ecc_param[1], 16);
 		this.ecc_b = new BigInteger(ecc_param[2], 16);
@@ -84,7 +82,7 @@ public class SM2 {
 	}
 
 	// 生成随机秘钥对
-	public String[] generateKeyPair() {
+	private String[] generateKeyPair() {
 		SM2 sm2 = SM2.Instance();
 		AsymmetricCipherKeyPair key = sm2.ecc_key_pair_generator.generateKeyPair();
 		ECPrivateKeyParameters ecpriv = (ECPrivateKeyParameters) key.getPrivate();
@@ -95,37 +93,34 @@ public class SM2 {
 	}
 
 	// 数据加密
-	public static String encrypt(byte[] publicKey, byte[] data) throws IOException {
-		if (publicKey == null || publicKey.length == 0) {
+	private String encrypt(byte[] privateKey, byte[] data) throws IOException {
+		if (privateKey == null || privateKey.length == 0) {
 			return null;
 		}
 
 		if (data == null || data.length == 0) {
 			return null;
+		}else{
+			
 		}
 
 		byte[] source = new byte[data.length];
 		System.arraycopy(data, 0, source, 0, data.length);
 
-		Cipher cipher = new Cipher();
 		SM2 sm2 = SM2.Instance();
-		ECPoint userKey = sm2.ecc_curve.decodePoint(publicKey);
+		ECPoint userKey = sm2.ecc_curve.decodePoint(privateKey);
 
-		ECPoint c1 = cipher.Init_enc(sm2, userKey);
+		ECPoint c1 = Init_enc(sm2, userKey);
+		Cipher cipher=new Cipher();
 		cipher.Encrypt(source);
 		byte[] c3 = new byte[32];
 		cipher.Dofinal(c3);
-
-		// System.out.println("C1 " + Util.byteToHex(c1.getEncoded()));
-		// System.out.println("C2 " + Util.byteToHex(source));
-		// System.out.println("C3 " + Util.byteToHex(c3));
-		// C1 C2 C3拼装成加密字串
 		return Util.byteToHex(c1.getEncoded()) + Util.byteToHex(source) + Util.byteToHex(c3);
 
 	}
 
 	// 数据解密
-	public static byte[] decrypt(byte[] privateKey, byte[] encryptedData) throws IOException {
+	private byte[] decrypt(byte[] privateKey, byte[] encryptedData) throws IOException {
 		if (privateKey == null || privateKey.length == 0) {
 			return null;
 		}
@@ -154,4 +149,14 @@ public class SM2 {
 		// 返回解密结果
 		return c2;
 	}
+	public ECPoint Init_enc(SM2 sm2, ECPoint userKey)   
+	  {  
+	      AsymmetricCipherKeyPair key = sm2.ecc_key_pair_generator.generateKeyPair();  
+	      ECPrivateKeyParameters ecpriv = (ECPrivateKeyParameters) key.getPrivate();  
+	      ECPublicKeyParameters ecpub = (ECPublicKeyParameters) key.getPublic();  
+	      BigInteger k = ecpriv.getD();  
+	      ECPoint c1 = ecpub.getQ();  
+	      userKey.multiply(k);  
+	      return c1;  
+	  }  
 }

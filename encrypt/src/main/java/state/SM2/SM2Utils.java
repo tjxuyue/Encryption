@@ -1,4 +1,4 @@
-package STATE.REALIZATION.SM2;
+package state.SM2;
 
 
 import java.io.IOException;  
@@ -8,18 +8,18 @@ import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;  
 import org.bouncycastle.math.ec.ECPoint;
 
-import UTIL.Util;  
+import util.Util; 
+import state.SM2.*;  
   
 public class SM2Utils   
 {  
     public static void main(String[] args) throws Exception   
     {  
-    	SM2 sm2 = SM2.Instance();  
-        //生成密钥对  
-    	String[] keyPair=sm2.generateKeyPair();  
+    	SM2 sm2=new SM2().in;  
+    	 //生成密钥对  
+    	String[] keyPair=SM2.generateKeyPair();  
           
-        String plainText = "43242343242";  
-        byte[] sourceData = plainText.getBytes();  
+        String sourceData = "43242343242";    
           
         //下面的秘钥可以使用generateKeyPair()生成的秘钥内容  
         // 国密规范正式私钥  
@@ -31,10 +31,10 @@ public class SM2Utils
         System.out.println("公钥 ");
         System.out.println(pubk); 
         System.out.println("加密: ");  
-        String cipherText = sm2.encrypt(Util.hexToByte(pubk), sourceData);  
+        String cipherText = SM2.encrypt(pubk, sourceData);  
         System.out.println(cipherText);  
         System.out.println("解密: ");  
-        plainText = new String(sm2.decrypt(Util.hexToByte(prik), Util.hexToByte(cipherText)));  
+        plainText = new String(SM2.decrypt(Util.hexToByte(prik), Util.hexToByte(cipherText)));  
         System.out.println(plainText);  
           
     }  
